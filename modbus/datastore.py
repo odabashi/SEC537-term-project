@@ -3,7 +3,7 @@ Defines the internal memory of the PLC. This includes registers and coils expose
 """
 from pymodbus.datastore import (
     ModbusSequentialDataBlock,
-    ModbusSlaveContext,
+    ModbusDeviceContext,
     ModbusServerContext
 )
 import threading
@@ -106,12 +106,11 @@ def create_slave_context():
     # So creating slave context means the memory of 1 PLC device (in our case it is a container of aforementioned 4
     # memory tables (coils, discrete inputs, holding registers, input registers)
 
-    slave_context = ModbusSlaveContext(
+    slave_context = ModbusDeviceContext(
         di=discrete_inputs,
         co=coils,
         hr=holding_registers,
-        ir=input_registers,
-        zero_mode=True  # Required to align with logical Modbus addresses (Treat incoming addresses as zero-based)
+        ir=input_registers
     )
 
     return slave_context
@@ -126,7 +125,7 @@ def create_server_context():
     # -----------------------------
     slave_context = create_slave_context()
     server_context = ModbusServerContext(
-        slaves={1: slave_context},
+        devices={1: slave_context},
         single=False
     )
     return server_context

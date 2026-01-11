@@ -2,7 +2,7 @@
 Main entry point for the Modbus PLC simulator. Starts a Modbus TCP server exposing the PLC memory.
 """
 from pymodbus.server import StartTcpServer
-from pymodbus.device import ModbusDeviceIdentification
+from pymodbus import ModbusDeviceIdentification
 from datastore import create_server_context, start_background_updater
 from config import MODBUS_HOST, MODBUS_PORT
 import logging
