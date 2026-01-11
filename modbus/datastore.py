@@ -12,7 +12,7 @@ import time
 import logging
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("modbus")
 
 
 def create_slave_context():
@@ -91,7 +91,7 @@ def create_slave_context():
             110,    # 30002 - Current pressure (PSI)
             55,     # 30003 - Vibration level (%)
             4200,   # 30004 - Units produced today
-            92,     # 30005 - Power consumption (kW)
+            92      # 30005 - Power consumption (kW)
         ]
     )
 
@@ -141,8 +141,6 @@ def update_registers_periodically(context, unit_id=1, interval=1):
         - interval: Update interval in seconds
     """
     while True:
-        slave = context[unit_id]
-
         # Update Input Registers (3xxxx): Live sensor readings
         temperature = random.randint(20, 80)            # °C
         pressure = random.randint(50, 150)              # PSI
@@ -150,7 +148,11 @@ def update_registers_periodically(context, unit_id=1, interval=1):
         units_produced = random.randint(4000, 4500)     # units
         power = random.randint(80, 120)                 # kW
 
-        slave.setValues(4, 0, [temperature, pressure, vibration_level, units_produced, power])
+        context[unit_id].setValues(4, 0, [temperature])
+        context[unit_id].setValues(4, 1, [pressure])
+        context[unit_id].setValues(4, 2, [vibration_level])
+        context[unit_id].setValues(4, 3, [units_produced])
+        context[unit_id].setValues(4, 4, [power])
 
         logger.info(f"Updated registers:\n\t\tTemperature={temperature}°C,\n\t\tPressure={pressure},\n\t\t"
                     f"Vibration Level={vibration_level},\n\t\tUnits Produced Today={units_produced},\n\t\t"

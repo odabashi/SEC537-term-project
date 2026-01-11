@@ -17,7 +17,7 @@ MODBUS_PORT = 5020
 
 
 # Logging Configuration
-logger = logging.getLogger('modbus')
+logger = logging.getLogger("modbus")
 formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s',
                               "%Y-%m-%d %H:%M:%S")
 

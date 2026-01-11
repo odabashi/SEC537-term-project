@@ -8,7 +8,7 @@ from config import MODBUS_HOST, MODBUS_PORT
 import logging
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("modbus")
 
 
 def main():
