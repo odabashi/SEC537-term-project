@@ -161,9 +161,9 @@ async def update_registers_periodically(context, unit_id=1, interval=1):
         context[unit_id].setValues(4, 3, [units_produced])
         context[unit_id].setValues(4, 4, [power])
 
-        logger.info(f"Updated registers:\n\t\tTemperature={temperature}°C,\n\t\tPressure={pressure},\n\t\t"
-                    f"Vibration Level={vibration_level},\n\t\tUnits Produced Today={units_produced},\n\t\t"
-                    f"Consumed Power={power}")
+        logger.info(f"Updated registers:\n\t\tTemperature={temperature} °C,\n\t\tPressure={pressure} PSI,\n\t\t"
+                    f"Vibration Level={vibration_level}%,\n\t\tUnits Produced Today={units_produced},\n\t\t"
+                    f"Consumed Power={power} kW")
         await asyncio.sleep(interval)
 
 
