@@ -6,7 +6,6 @@ from pymodbus.datastore import (
     ModbusDeviceContext,
     ModbusServerContext
 )
-import threading
 import random
 import asyncio
 import logging
@@ -37,7 +36,7 @@ def create_slave_context():
     # Purpose: Binary control flags/outputs (1-bit)
     # -----------------------------
 
-    coils = ModbusSequentialDataBlock(
+    example_coils = ModbusSequentialDataBlock(
         0,
         [
             False,  # 00001 - Emergency stop (False = released)
@@ -45,6 +44,8 @@ def create_slave_context():
             True,   # 00003 - Cooling system active
         ]
     )
+    # Better to allocate more registers than we need (20 instead of 3):
+    coils = ModbusSequentialDataBlock(0, [True] * 20)
 
     # -----------------------------
     # DISCRETE INPUTS (0x02)
@@ -52,7 +53,7 @@ def create_slave_context():
     # Purpose: Binary status indicators (1-bit)
     # -----------------------------
 
-    discrete_inputs = ModbusSequentialDataBlock(
+    example_discrete_inputs = ModbusSequentialDataBlock(
         0,
         [
             True,   # 10001 - Machine running
@@ -60,6 +61,8 @@ def create_slave_context():
             True,   # 10003 - Safety interlock OK
         ]
     )
+    # Better to allocate more registers than we need (20 instead of 3):
+    discrete_inputs = ModbusSequentialDataBlock(0, [True] * 20)
 
     # -----------------------------
     # HOLDING REGISTERS (0x03)
@@ -67,7 +70,7 @@ def create_slave_context():
     # Purpose: Configuration, thresholds, limits (16-bit)
     # -----------------------------
 
-    holding_registers = ModbusSequentialDataBlock(
+    example_holding_registers = ModbusSequentialDataBlock(
         0,
         [
             75,    # 40001 - Temperature alarm threshold (°C)
@@ -77,6 +80,8 @@ def create_slave_context():
             1,     # 40005 - Safety mode enabled (1 = ON)
         ]
     )
+    # Better to allocate more registers than we need (20 instead of 5):
+    holding_registers = ModbusSequentialDataBlock(0, [0] * 20)
 
     # -----------------------------
     # INPUT REGISTERS (0x04)
@@ -84,7 +89,7 @@ def create_slave_context():
     # Purpose: Live sensor readings (Dummy) (read-only in PLC) (16-bit)
     # -----------------------------
 
-    input_registers = ModbusSequentialDataBlock(
+    example_input_registers = ModbusSequentialDataBlock(
         0,
         [
             68,     # 30001 - Current temperature (°C)
@@ -94,6 +99,8 @@ def create_slave_context():
             92      # 30005 - Power consumption (kW)
         ]
     )
+    # Better to allocate more registers than we need (20 instead of 5):
+    input_registers = ModbusSequentialDataBlock(0, [0] * 20)
 
     # Based on the statement in the Assignment document "Students must extract at least 2 types of sensitive data", we
     # actually need 2, but we have many more :)
@@ -166,4 +173,3 @@ async def start_background_updater(context):
     """
     task = asyncio.create_task(update_registers_periodically(context))
     task.set_name("Registers Updating task")
-    # task.cancel()
