@@ -38,7 +38,7 @@ def update_session(session_id: str):
     return None
 
 
-def require_user(request: Request):
+def require_session(request: Request):
     session_id = request.cookies.get("session_id")
 
     logger.warning("Session ID is not found. Try to Login!")
@@ -55,4 +55,4 @@ def require_user(request: Request):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Session ID is used. There is no session with such ID!"
         )
-    return session["user"]
+    return session
