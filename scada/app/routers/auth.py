@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 import logging
 from scada.app.models.schemas import LoginRequest
 from scada.app.services.session import create_session, generate_session_id 
-from services.monitoring import log_attack 
+from scada.app.services.monitoring import log_attack
 
 
 logger = logging.getLogger("SEC537_SCADA")
@@ -132,23 +132,7 @@ def login(data: LoginRequest, request: Request):
                 'session_id': session_id
             }
         )
-        
-        # MONITORING: Log predictable session ID
-        log_attack(
-            attack_type='PREDICTABLE_SESSION',
-            target_url='/auth/login',
-            payload=f'Predictable session ID generated: {session_id}',
-            source_ip=ip,
-            user_agent=user_agent,
-            success=True,
-            details={
-                'username': data.username,
-                'session_id': session_id,
-                'vulnerability': 'Session ID can be predicted/hijacked',
-                'session_pattern': 'Deterministic generation'
-            }
-        )
-        
+
         logger.info(f"User logged in: {data.username}")
         resp = JSONResponse(content={"session_id": session_id})
         resp.set_cookie("session_id", session_id, httponly=True)

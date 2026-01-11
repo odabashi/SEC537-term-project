@@ -17,13 +17,10 @@ MAX_LOG_SIZE = 1000  # Prevent memory overflow
 # Attack severity classification
 ATTACK_SEVERITY = {
     'BRUTE_FORCE': 'medium',
-    'CREDENTIAL_LEAK': 'critical',
     'PASSWORD_LEAK': 'critical',
     'WEAK_PASSWORD': 'high',
     'WEAK_CAPTCHA': 'medium',
-    'NO_RATE_LIMIT': 'high',
     'SESSION_HIJACK': 'critical',
-    'PREDICTABLE_SESSION': 'high',
     'PATH_TRAVERSAL': 'critical',
     'SSRF': 'critical',
     'CMD_INJECTION': 'critical',
