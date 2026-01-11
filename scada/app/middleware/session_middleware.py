@@ -2,7 +2,7 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 from scada.app.services.session import get_session, update_session
-
+from services.monitoring import log_attack 
 
 logger = logging.getLogger("SEC537_SCADA")
 
@@ -26,7 +26,25 @@ class SessionMonitorMiddleware(BaseHTTPMiddleware):
 
             if session:
                 if session["ip"] != ip or session["user_agent"] != user_agent:
-                    # TODO: MONITORING - VULNERABILITY: PREDICTABLE SESSION ID, ATTACK: SESSION HIJACK
+                    # MONITORING: Log session hijack attempt
+                    log_attack(
+                        attack_type='SESSION_HIJACK',
+                        target_url=str(request.url.path),
+                        payload=f'Session hijack suspected',
+                        source_ip=ip,
+                        user_agent=user_agent,
+                        success=True,
+                        details={
+                            'session_id': session_id,
+                            'original_ip': session['ip'],
+                            'current_ip': ip,
+                            'original_user_agent': session['user_agent'],
+                            'current_user_agent': user_agent,
+                            'vulnerability': 'PREDICTABLE_SESSION_ID',
+                            'user': session.get('user', 'unknown')
+                        }
+                    )
+                    
                     logger.warning(
                         f"Session hijack suspected | "
                         f"Session ID: {session_id} | "
