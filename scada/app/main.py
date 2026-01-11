@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware
 from config import HOST, PORT, APP_NAME, CONCURRENCY_LIMIT
 from routers import auth, devices, diagnostics, logs
+from middleware.session_middleware import SessionMonitorMiddleware
 
 
 def get_application(lifespan=None):
@@ -23,6 +24,7 @@ def get_application(lifespan=None):
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    _app.add_middleware(SessionMonitorMiddleware)
     return _app
 
 
