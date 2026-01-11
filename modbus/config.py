@@ -23,10 +23,13 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s',
 
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
+stream_handler.setLevel(logging.INFO)
 logger.addHandler(stream_handler)
 
 file_handler = logging.FileHandler("modbus.log")
 file_handler.setFormatter(formatter)
+file_handler.setLevel(logging.INFO)
 logger.addHandler(file_handler)
 
 logger.setLevel(logging.INFO)
+logger.propagate = False
