@@ -1,15 +1,17 @@
-from fastapi import APIRouter
-from ..models.schemas import DeviceCheckRequest
+from fastapi import APIRouter, Depends
 import logging
 import requests
+from ..models.schemas import DeviceCheckRequest
+from ..services.session import require_session
 
 
 logger = logging.getLogger("SEC537_SCADA")
+
 router = APIRouter()
 
 
 @router.post("/check")
-def check_device(data: DeviceCheckRequest):
+def check_device(data: DeviceCheckRequest, user: str = Depends(require_session)):
     """
     Device health check.
     VULNERABILITY: Vulnerable to SSRF (no IP validation).
