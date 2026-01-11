@@ -48,6 +48,18 @@ async def root():
     return HTMLResponse(content=html_content, status_code=200)
 
 
+@app.get("/monitoring", response_class=HTMLResponse)
+async def monitoring_root():
+    """
+    GET endpoint to redirect the users to Monitoring System UI.
+    Returns an HTMLResponse containing the Redirecting UI.
+    """
+    with open("static/monitoring.html", "r", encoding="utf-8") as f:
+        html_content = f.read()
+
+    return HTMLResponse(content=html_content, status_code=200)
+
+
 if __name__ == '__main__':
     uvicorn.run(
         app,
