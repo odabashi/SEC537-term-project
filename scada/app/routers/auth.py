@@ -1,7 +1,8 @@
 from fastapi import Request, APIRouter
-from ..models.schemas import LoginRequest
-from ..services.session import create_session
+from fastapi.responses import JSONResponse
 import logging
+from ..models.schemas import LoginRequest
+from ..services.session import create_session, generate_session_id
 
 
 logger = logging.getLogger("SEC537_SCADA")
@@ -59,9 +60,17 @@ def login(data: LoginRequest, request: Request):
         # TODO: MONITORING - VULNERABILITY: NO/WEAK CAPTCHA
         login_attempts[ip] = 0
         # TODO: MONITORING - VULNERABILITY: PREDICTABLE SESSION ID, ATTACK: SESSION HIJACK
-        session_id = create_session(request, data.username)
+        session_id = generate_session_id()
+        create_session(
+            session_id=session_id,
+            user=data.username,
+            ip=ip,
+            user_agent=request.headers.get("user-agent", "unknown")
+        )
         logger.info(f"User logged in: {data.username}")
-        return {"session_id": session_id}
+        resp = JSONResponse(content={"session_id": session_id})
+        resp.set_cookie("session_id", session_id, httponly=True)
+        return resp
 
     logger.warning(f"Failed login for {data.username}")
     return {"error": "Invalid credentials"}
