@@ -13,16 +13,6 @@ def generate_session_id():
     return f"session-{int(time.time())}"
 
 
-def require_session(request: Request):
-    # TODO: MONITORING - VULNERABILITY: PREDICTABLE SESSION ID, ATTACK: SESSION HIJACK
-    session_id = request.headers.get("X-Session-ID")
-    if not session_id:
-        return None
-    if request.session.get("session_id") == session_id:
-        return request.session.get("username")
-    return None
-
-
 def create_session(session_id: str, user: str, ip: str, user_agent: str):
     # VULNERABILITY: Predictable Session ID, Very weak session handling, no expiration, no signing.
     # In this example we use time-based session ID (But also sequential IDs could be used as they are not bound to User
@@ -55,7 +45,7 @@ def require_user(request: Request):
     if not session_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing session"
+            detail="Session is not found. Try to Login!"
         )
     session = get_session(session_id)
 
@@ -63,6 +53,6 @@ def require_user(request: Request):
     if not session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid session"
+            detail="Invalid Session ID is used. There is no session with such ID!"
         )
     return session["user"]

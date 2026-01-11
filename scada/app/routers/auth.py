@@ -1,8 +1,8 @@
 from fastapi import Request, APIRouter
 from fastapi.responses import JSONResponse
 import logging
-from ..models.schemas import LoginRequest
-from ..services.session import create_session, generate_session_id
+from scada.app.models.schemas import LoginRequest
+from scada.app.services.session import create_session, generate_session_id
 
 
 logger = logging.getLogger("SEC537_SCADA")
@@ -28,7 +28,7 @@ WEAK_CAPTCHA_ANSWER = "5"  # static, predictable
 @router.post("/login")
 def login(data: LoginRequest, request: Request):
     # VULNERABILITY: Weak CAPTCHA: It is static, reusable, client-known and does NOT block automation
-    if data.captcha != WEAK_CAPTCHA_ANSWER:
+    if data.captcha_answer != WEAK_CAPTCHA_ANSWER:
         logger.warning("Invalid CAPTCHA attempt")
         return {"error": "Invalid CAPTCHA"}
 
