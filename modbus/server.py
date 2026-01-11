@@ -39,7 +39,7 @@ async def main():
     # Start Modbus Server
     # -----------------------------
 
-    logger.info(f"Starting Modbus PLC on {MODBUS_HOST}: {MODBUS_PORT}")
+    logger.info(f"Starting Modbus PLC on {MODBUS_HOST}:{MODBUS_PORT}")
     logger.warning("Warning: No authentication, no encryption, trust-based access!!!")
 
     await StartAsyncTcpServer(
