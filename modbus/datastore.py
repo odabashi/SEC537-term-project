@@ -8,7 +8,7 @@ from pymodbus.datastore import (
 )
 import threading
 import random
-import time
+import asyncio
 import logging
 
 
@@ -131,7 +131,7 @@ def create_server_context():
     return server_context
 
 
-def update_registers_periodically(context, unit_id=1, interval=1):
+async def update_registers_periodically(context, unit_id=1, interval=1):
     """
     Periodically updates Modbus registers to simulate live PLC data.
 
@@ -157,16 +157,13 @@ def update_registers_periodically(context, unit_id=1, interval=1):
         logger.info(f"Updated registers:\n\t\tTemperature={temperature}°C,\n\t\tPressure={pressure},\n\t\t"
                     f"Vibration Level={vibration_level},\n\t\tUnits Produced Today={units_produced},\n\t\t"
                     f"Consumed Power={power}")
-        time.sleep(interval)
+        await asyncio.sleep(interval)
 
 
-def start_background_updater(context):
+async def start_background_updater(context):
     """
     Starts the background thread that updates Modbus registers.
     """
-    thread = threading.Thread(
-        target=update_registers_periodically,
-        args=(context,),
-        daemon=True
-    )
-    thread.start()
+    task = asyncio.create_task(update_registers_periodically(context))
+    task.set_name("Registers Updating task")
+    # task.cancel()
