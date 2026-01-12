@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 import logging
 import requests
 from datetime import datetime
 from models.schemas import DeviceCheckRequest, DeviceAddRequest
 from services.session import require_session
-from services.security import detect_internal_target
+from services.security import detect_internal_target, is_allowed_scada_target
 from services.monitoring import log_attack
 from services.devices import add_device, list_devices
 from services.modbus_client import read_plc_data
@@ -24,6 +24,7 @@ def check_device(data: DeviceCheckRequest,session: str = Depends(require_session
     """
     ssrf_attempt = detect_internal_target(data.ip)
 
+    # Detection (monitoring only)
     if ssrf_attempt:
         # MONITORING: Log SSRF attack
         log_attack(
@@ -43,6 +44,14 @@ def check_device(data: DeviceCheckRequest,session: str = Depends(require_session
             }
         )
         logger.critical("Blind SSRF attempt!!!")
+
+    # PREVIOUS VULNERABILITY: BLIND SSRF
+    # PATCHED: Enforcement
+    if not is_allowed_scada_target(data.ip):
+        raise HTTPException(
+            status_code=403,
+            detail="Target not in approved SCADA network"
+        )
 
     logger.info(f"Checking device health for {data.ip} based on the request of {session['user']}")
     try:

@@ -63,3 +63,18 @@ def detect_internal_target(target):
     except ValueError:
         # Non-IP hostname: not detected (DNS-based SSRF still possible)
         return False
+
+
+# Allowed SCADA device networks (My Machine IP is 164.92.225.125)
+ALLOWED_SCADA_NETWORKS = [
+    ipaddress.ip_network("164.92.225.125/32"),   # Simplest & safest (single IP only since we have 1 device only)
+    # ipaddress.ip_network("164.92.225.0/24"),   # PLC subnet (if we want a range)
+]
+
+
+def is_allowed_scada_target(target: str) -> bool:
+    try:
+        ip = ipaddress.ip_address(target)
+        return any(ip in net for net in ALLOWED_SCADA_NETWORKS)
+    except ValueError:
+        return False
