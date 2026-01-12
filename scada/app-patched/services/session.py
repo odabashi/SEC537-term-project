@@ -62,9 +62,9 @@ def require_session(request: Request):
     session = get_session(session_id)
 
     if not session:
-        logger.warning("Invalid Session ID is used. There is no session with such ID!")
+        logger.warning("Invalid Session ID is used. There is no session with such ID! Try to Login!")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Session ID is used. There is no session with such ID!"
+            detail="Invalid Session ID is used. There is no session with such ID! Try to Login!"
         )
     return session
