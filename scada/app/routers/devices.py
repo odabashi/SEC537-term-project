@@ -8,7 +8,11 @@ from scada.app.services.security import detect_internal_target
 from scada.app.services.monitoring import log_attack
 from scada.app.services.devices import add_device, list_devices
 from scada.app.services.modbus_client import read_plc_data
+
+
 logger = logging.getLogger("SEC537_SCADA")
+
+
 router = APIRouter()
 
 

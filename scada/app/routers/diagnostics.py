@@ -8,6 +8,8 @@ from scada.app.services.monitoring import log_attack
 
 
 logger = logging.getLogger("SEC537_SCADA")
+
+
 router = APIRouter()
 
 

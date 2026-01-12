@@ -1,8 +1,9 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 import logging
-from services.session import get_session, update_session
-from services.monitoring import log_attack
+from scada.app.services.session import get_session, update_session
+from scada.app.services.monitoring import log_attack
+
 
 logger = logging.getLogger("SEC537_SCADA")
 
@@ -22,7 +23,6 @@ class SessionMonitorMiddleware(BaseHTTPMiddleware):
             user_agent = request.headers.get("user-agent", "unknown")
 
             session = get_session(session_id)
-            logger.info(f"Session Info: {session}")
 
             if session:
                 if session["ip"] != ip or session["user_agent"] != user_agent:

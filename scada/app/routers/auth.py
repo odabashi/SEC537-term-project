@@ -2,11 +2,13 @@ from fastapi import Request, APIRouter
 from fastapi.responses import JSONResponse
 import logging
 from scada.app.models.schemas import LoginRequest
-from scada.app.services.session import create_session, generate_session_id 
+from scada.app.services.session import create_session, generate_session_id, get_session
 from scada.app.services.monitoring import log_attack
 
 
 logger = logging.getLogger("SEC537_SCADA")
+
+
 router = APIRouter()
 
 
@@ -116,6 +118,8 @@ def login(data: LoginRequest, request: Request):
             ip=ip,
             user_agent=user_agent
         )
+
+        logger.info(f"Session Info: {get_session(session_id)}")
         
         # MONITORING: Log successful login with weak credentials
         log_attack(

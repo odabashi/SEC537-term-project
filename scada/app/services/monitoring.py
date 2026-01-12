@@ -1,12 +1,12 @@
 """
 Monitoring Service for SCADA Honeypot
 Tracks and logs all security attacks and vulnerabilities
-Adapted from Flask version to FastAPI
 """
 
 from datetime import datetime
 from typing import Dict, List, Optional
 import logging
+
 
 logger = logging.getLogger("SEC537_SCADA")
 
@@ -25,7 +25,7 @@ ATTACK_SEVERITY = {
     'SSRF': 'critical',
     'STORED_SSRF': 'critical',
     'CMD_INJECTION': 'critical',
-    'UNSAFE_DEVICE_ADD': 'medium',
+    'UNSAFE_DEVICE_ADD': 'high',
     'PATH_INJECTION': 'high',
     'MODBUS_UNAUTHORIZED': 'critical'
 }

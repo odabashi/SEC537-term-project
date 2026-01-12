@@ -5,13 +5,14 @@ Provides endpoints for attack monitoring and statistics
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from services.monitoring import (
+from scada.app.services.monitoring import (
     get_all_attacks,
     get_attack_stats,
     clear_logs,
     get_recent_attacks,
     get_attacks_by_severity
 )
+
 
 router = APIRouter()
 
