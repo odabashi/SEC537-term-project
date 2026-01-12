@@ -13,7 +13,7 @@ from scada.app.services.modbus_client import read_plc_data
 logger = logging.getLogger("SEC537_SCADA")
 
 
-router = APIRouter()
+router = APIRouter(tags=["Device Management Handlers"])
 
 
 @router.post("/check")

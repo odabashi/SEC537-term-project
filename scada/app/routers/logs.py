@@ -9,7 +9,7 @@ from scada.app.services.monitoring import log_attack
 logger = logging.getLogger("SEC537_SCADA")
 
 
-router = APIRouter()
+router = APIRouter(tags=["Log Exporting Handlers"])
 
 
 @router.get("/export")

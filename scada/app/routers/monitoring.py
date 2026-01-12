@@ -14,7 +14,7 @@ from scada.app.services.monitoring import (
 )
 
 
-router = APIRouter()
+router = APIRouter(tags=["Monitoring Handlers"])
 
 
 @router.get("/attacks")
