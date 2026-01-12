@@ -9,12 +9,14 @@ class LoginRequest(BaseModel):
 
 class DeviceCheckRequest(BaseModel):
     ip: str
+    port: int = 502
 
 
 class DeviceAddRequest(BaseModel):
     name: str
     ip: str
     type: str
+    port: int = 502
 
 
 class DiagnosticRequest(BaseModel):

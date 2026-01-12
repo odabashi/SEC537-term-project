@@ -28,11 +28,11 @@ def check_device(data: DeviceCheckRequest, session: str = Depends(require_sessio
 
     logger.info(f"Checking device health for {data.ip} based on the request of {session['user']}")
     try:
-        r = requests.get(f"http://{data.ip}", timeout=2)
-        logger.info(f"The target device on {data.ip} is reachable. The response is {r.text[:100]}")
+        r = requests.get(f"http://{data.ip}:{data.port}", timeout=2)
+        logger.info(f"The target device on {data.ip}:{data.port} is reachable. The response is {r.text[:100]}")
         return {"status": "device health check completed"}  # Blind SSRF: response is irrelevant
     except Exception as e:
-        logger.error(f"The target device on {data.ip} is unreachable. The error message is {e}")
+        logger.error(f"The target device on {data.ip}:{data.port} is unreachable. The error message is {e}")
         return {"status": "device health check completed"}  # Still blind: attacker learns nothing
 
 
@@ -46,6 +46,7 @@ def add_new_device(data: DeviceAddRequest, session: str = Depends(require_sessio
     device = {
         "name": data.name,
         "ip": str(data.ip),
+        "port": int(data.port),
         "type": data.type,
         "added_by": session["user"],
         "added_at": datetime.now()
@@ -60,14 +61,14 @@ def add_new_device(data: DeviceAddRequest, session: str = Depends(require_sessio
     add_device(device)
 
     logger.info(f"New device added by {session['user']}: {device['name']} of type {device['type']} "
-                f"(IP: {device['ip']})")
+                f"(IP: {device['ip']}:{device['port']})")
 
     # Unsafe discovery check (SSRF trigger)
     try:
-        r = requests.get(f"http://{data.ip}", timeout=2)
-        logger.info(f"The new device on {data.ip} is reachable. The response is {r.text[:100]}")
+        r = requests.get(f"http://{data.ip}:{data.port}", timeout=2)
+        logger.info(f"The new device on {data.ip}:{data.port} is reachable. The response is {r.text[:100]}")
     except Exception as e:
-        logger.error(f"The new device on {data.ip} is unreachable. The error message is {e}")
+        logger.error(f"The new device on {data.ip}:{data.port} is unreachable. The error message is {e}")
         pass
 
     return {"status": "Device is added and will be monitored periodically"}
