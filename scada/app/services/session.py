@@ -21,8 +21,8 @@ def create_session(session_id: str, user: str, ip: str, user_agent: str):
         "user": user,
         "ip": ip,
         "user_agent": user_agent,
-        "created_at": datetime.now(),
-        "last_seen": datetime.now()
+        "created_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "last_seen": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     }
 
 
@@ -33,7 +33,7 @@ def get_session(session_id: str):
 def update_session(session_id: str):
     session = SESSIONS.get(session_id)
     if session:
-        session["last_seen"] = datetime.now()
+        session["last_seen"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         return session
     return None
 
