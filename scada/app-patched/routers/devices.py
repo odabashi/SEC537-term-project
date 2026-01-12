@@ -46,8 +46,24 @@ def check_device(data: DeviceCheckRequest,session: str = Depends(require_session
         logger.critical("Blind SSRF attempt!!!")
 
     # PREVIOUS VULNERABILITY: BLIND SSRF
-    # PATCHED: Enforcement
+    # PATCHED: Enforcement (More Effective than only IPs and domains of internal networks)
     if not is_allowed_scada_target(data.ip):
+        log_attack(
+            attack_type='SSRF',
+            target_url='/api/device/check',
+            payload=f'Blind SSRF attempt to: {data.ip}',
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=True,
+            details={
+                'user': session['user'],
+                'target_ip': data.ip,
+                'attack_vector': 'Device health check',
+                'ssrf_type': 'Blind SSRF',
+                'vulnerability': 'No IP validation or whitelist',
+                'internal_target_detected': True
+            }
+        )
         raise HTTPException(
             status_code=403,
             detail="Target not in approved SCADA network"
@@ -119,13 +135,34 @@ def add_new_device(data: DeviceAddRequest, session: str = Depends(require_sessio
             }
         )
 
-    # Store device (persistent SSRF vector)
+    # PREVIOUS VULNERABILITY: Stored (Persistent) SSRF
+    # PATCHED: Enforcement (More Effective than only IPs and domains of internal networks)
+    if not is_allowed_scada_target(data.ip):
+        log_attack(
+            attack_type='STORED_SSRF',
+            target_url='/api/device/add',
+            payload=data.ip,
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=False,
+            details={
+                'user': session['user'],
+                'device_name': data.name,
+                'reason': 'Device IP not in SCADA allowlist'
+            }
+        )
+
+        raise HTTPException(
+            status_code=403,
+            detail="Device IP is not approved. Device could not be added!"
+        )
+
+    # Store device
     add_device(device)
 
     logger.info(f"New device added by {session['user']}: {device['name']} of type {device['type']} "
                 f"(IP: {device['ip']}:{device['port']})")
 
-    # Unsafe discovery check (SSRF trigger)
     try:
         r = requests.get(f"http://{data.ip}:{data.port}", timeout=2)
         logger.info(f"The new device on {data.ip}:{data.port} is reachable. The response is {r.text[:100]}")
