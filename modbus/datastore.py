@@ -36,16 +36,19 @@ def create_slave_context():
     # Purpose: Binary control flags/outputs (1-bit)
     # -----------------------------
 
-    example_coils = ModbusSequentialDataBlock(
+    coils = ModbusSequentialDataBlock(
         0,
         [
-            False,  # 00001 - Emergency stop (False = released)
-            True,   # 00002 - Conveyor enabled
-            True,   # 00003 - Cooling system active
+            0,      # 00001 - Emergency stop (0 = released)
+            1,      # 00002 - Conveyor enabled
+            1,      # 00003 - Cooling system active
+            0,      # 00004 - Another register
+            0,      # 00005 - Another register
         ]
     )
-    # Better to allocate more registers than we need (20 instead of 3):
-    coils = ModbusSequentialDataBlock(0, [True] * 20)
+    # Better to allocate more registers than we need (5 instead of 3)
+    # Or more
+    # coils = ModbusSequentialDataBlock(0, [1] * 20)
 
     # -----------------------------
     # DISCRETE INPUTS (0x02)
@@ -53,16 +56,19 @@ def create_slave_context():
     # Purpose: Binary status indicators (1-bit)
     # -----------------------------
 
-    example_discrete_inputs = ModbusSequentialDataBlock(
+    discrete_inputs = ModbusSequentialDataBlock(
         0,
         [
-            True,   # 10001 - Machine running
-            False,  # 10002 - Maintenance mode
-            True,   # 10003 - Safety interlock OK
+            1,      # 10001 - Machine running
+            0,      # 10002 - Maintenance mode
+            1,      # 10003 - Safety interlock OK
+            0,      # 10004 - Another register
+            0,      # 10005 - Another register
         ]
     )
-    # Better to allocate more registers than we need (20 instead of 3):
-    discrete_inputs = ModbusSequentialDataBlock(0, [True] * 20)
+    # Better to allocate more registers than we need (5 instead of 3):
+    # Or more
+    # discrete_inputs = ModbusSequentialDataBlock(0, [1] * 20)
 
     # -----------------------------
     # HOLDING REGISTERS (0x03)
@@ -70,7 +76,7 @@ def create_slave_context():
     # Purpose: Configuration, thresholds, limits (16-bit)
     # -----------------------------
 
-    example_holding_registers = ModbusSequentialDataBlock(
+    holding_registers = ModbusSequentialDataBlock(
         0,
         [
             75,    # 40001 - Temperature alarm threshold (°C)
@@ -78,10 +84,13 @@ def create_slave_context():
             90,    # 40003 - Vibration alarm threshold (%)
             5000,  # 40004 - Daily production target (units)
             1,     # 40005 - Safety mode enabled (1 = ON)
+            0,     # 40006 - Another register
+            0,     # 40007 - Another register
         ]
     )
-    # Better to allocate more registers than we need (20 instead of 5):
-    holding_registers = ModbusSequentialDataBlock(0, [0] * 20)
+    # Better to allocate more registers than we need (7 instead of 5):
+    # Or more
+    # holding_registers = ModbusSequentialDataBlock(0, [0] * 20)
 
     # -----------------------------
     # INPUT REGISTERS (0x04)
