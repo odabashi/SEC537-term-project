@@ -23,10 +23,27 @@ ATTACK_SEVERITY = {
     'SESSION_HIJACK': 'critical',
     'PATH_TRAVERSAL': 'critical',
     'SSRF': 'critical',
+    'STORED_SSRF': 'critical',
     'CMD_INJECTION': 'critical',
     'UNSAFE_DEVICE_ADD': 'medium',
     'PATH_INJECTION': 'high',
     'MODBUS_UNAUTHORIZED': 'critical'
+}
+
+# Mitigation recommendations for each attack type
+ATTACK_MITIGATION = {
+    'BRUTE_FORCE': 'Implement rate limiting (e.g., max 5 attempts per minute per IP), account lockout after failed attempts, and strong CAPTCHA verification',
+    'PASSWORD_LEAK': 'Never expose credentials under any circumstance. Implement proper error handling that does not reveal system internals',
+    'WEAK_PASSWORD': 'Enforce strong password policies (minimum 12 characters, complexity requirements), implement password strength meters, and use multi-factor authentication (MFA)',
+    'WEAK_CAPTCHA': 'Use robust CAPTCHA solutions (e.g., reCAPTCHA v3, hCaptcha), implement time-based token validation, and add entropy to challenge generation',
+    'SESSION_HIJACK': 'Use cryptographically secure session tokens, bind sessions to IP and User-Agent, implement session rotation, set HTTPOnly and Secure flags on cookies',
+    'PATH_TRAVERSAL': 'Implement strict input validation, use whitelisting for allowed files, sanitize file paths, employ chroot jails, and never construct paths from user input directly',
+    'SSRF': 'Validate and whitelist allowed destination IPs/domains, block requests to private IP ranges (RFC 1918), use DNS resolution checks, implement request timeouts',
+    'STORED_SSRF': 'Same as SSRF, plus: validate data before storage, implement additional checks before making requests using stored data, use separate networks for internal services',
+    'CMD_INJECTION': 'Never pass user input directly to shell commands, use parameterized APIs instead of shell execution, implement strict input sanitization with whitelisting, use command execution libraries with built-in escaping',
+    'UNSAFE_DEVICE_ADD': 'Implement IP validation and whitelisting, use predefined device templates, require administrative approval for new devices, validate device configurations',
+    'PATH_INJECTION': 'Use whitelisting for allowed log types, implement path sanitization, store logs in separate directories with restricted access, use predefined file mappings',
+    'MODBUS_UNAUTHORIZED': 'Implement authentication and authorization for Modbus connections, use VPN or encrypted tunnels, employ network segmentation, enable Modbus security extensions (if available)'
 }
 
 
@@ -64,7 +81,8 @@ def log_attack(
         'payload': str(payload)[:500],  # Limit payload size
         'success': success,
         'details': details or {},
-        'user_agent': user_agent
+        'user_agent': user_agent,
+        'mitigation': ATTACK_MITIGATION.get(attack_type, 'Implement proper input validation and security controls')
     }
     
     # Add to in-memory log

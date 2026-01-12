@@ -491,6 +491,7 @@
                 description: 'Server-Side Request Forgery',
                 vuln_id: 'VUL-2.1'
             },
+            'STORED_SSRF': { icon: '🌐', description: 'Stored SSRF via unsafe device addition', vuln_id: 'VUL-2.1' },
             'CMD_INJECTION': {
                 icon: '💻',
                 description: 'Command injection in diagnostics',
@@ -601,6 +602,12 @@
                             </div>
                             <div class="vulnerability-info">
                                 <div><span class="vuln-id">${attackInfo.vuln_id}:</span> ${attackInfo.description}</div>
+                                ${attack.mitigation ? `
+                                    <div style="margin-top: 12px; padding: 10px; background: #e6f7ff; border-left: 3px solid #1890ff; border-radius: 4px;">
+                                        <strong style="color: #0050b3;">🛡️ Mitigation:</strong><br>
+                                        <span style="color: #002766; font-size: 12px;">${attack.mitigation}</span>
+                                    </div>
+                                ` : ''}
                                 ${attack.details && Object.keys(attack.details).length > 0 ? `
                                     <div style="margin-top: 8px; font-size: 12px;">
                                         <strong>Additional Info:</strong> ${JSON.stringify(attack.details)}

@@ -1,4 +1,4 @@
-from scada.app.models.schemas import LoginRequest, DeviceCheckRequest, DiagnosticRequest
+from models.schemas import LoginRequest, DeviceCheckRequest, DiagnosticRequest
 
 __all__ = [
     DeviceCheckRequest,

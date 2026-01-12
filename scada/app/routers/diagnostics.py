@@ -4,11 +4,10 @@ import logging
 from scada.app.models.schemas import DiagnosticRequest
 from scada.app.services.security import detect_command_injection
 from scada.app.services.session import require_session
+from scada.app.services.monitoring import log_attack  
 
 
 logger = logging.getLogger("SEC537_SCADA")
-
-
 router = APIRouter()
 
 
@@ -20,7 +19,23 @@ def ping(data: DiagnosticRequest, session: str = Depends(require_session)):
     VULNERABILITY: Command injection.
     """
     if detect_command_injection(data.host):
-        # TODO: MONITORING - COMMAND INJECTION
+        # MONITORING: Log Command Injection
+        log_attack(
+            attack_type='CMD_INJECTION',
+            target_url='/api/diagnostics/ping',
+            payload=f'Command injection attempt: {data.host}',
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=True,
+            details={
+                'user': session['user'],
+                'injected_command': data.host,
+                'executed_command': f'ping -c 1 {data.host}',
+                'attack_vector': 'Ping diagnostic',
+                'vulnerability': 'User input passed directly to os.system() without sanitization',
+                'detected_patterns': 'Command injection characters detected (e.g., ;, |, &, $, `, etc.)'
+            }
+        )
         logger.critical("Command Injection attempt!!!")
 
     cmd = f"ping -c 1 {data.host}"
@@ -37,7 +52,23 @@ def traceroute(data: DiagnosticRequest, session: str = Depends(require_session))
     VULNERABILITY: Command injection.
     """
     if detect_command_injection(data.host):
-        # TODO: MONITORING - COMMAND INJECTION
+        # MONITORING: Log Command Injection
+        log_attack(
+            attack_type='CMD_INJECTION',
+            target_url='/api/diagnostics/traceroute',
+            payload=f'Command injection attempt: {data.host}',
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=True,
+            details={
+                'user': session['user'],
+                'injected_command': data.host,
+                'executed_command': f'traceroute {data.host}',
+                'attack_vector': 'Traceroute diagnostic',
+                'vulnerability': 'User input passed directly to os.system() without sanitization',
+                'detected_patterns': 'Command injection characters detected (e.g., ;, |, &, $, `, etc.)'
+            }
+        )
         logger.critical("Command Injection attempt!!!")
 
     cmd = f"traceroute {data.host}"
