@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
 import logging
 import requests
-from scada.app.models.schemas import DeviceCheckRequest
+from datetime import datetime
+from scada.app.models.schemas import DeviceCheckRequest, DeviceAddRequest
 from scada.app.services.session import require_session
 from scada.app.services.security import detect_internal_target
+from scada.app.services.devices import add_device
 
 
 logger = logging.getLogger("SEC537_SCADA")
@@ -32,3 +34,40 @@ def check_device(data: DeviceCheckRequest, session: str = Depends(require_sessio
     except Exception as e:
         logger.error(f"The target device on {data.ip} is unreachable. The error message is {e}")
         return {"status": "device health check completed"}  # Still blind: attacker learns nothing
+
+
+@router.post("/add")
+def add_new_device(data: DeviceAddRequest, session: str = Depends(require_session)):
+    """
+    Adds a new device to the SCADA system.
+    VULNERABILITY: Stored SSRF due to unsafe device discovery. (No IP validation)
+    """
+
+    device = {
+        "name": data.name,
+        "ip": str(data.ip),
+        "type": data.type,
+        "added_by": session["user"],
+        "added_at": datetime.now()
+    }
+
+    # Monitoring: detect stored SSRF attempt
+    if detect_internal_target(device["ip"]):
+        # TODO: MONITORING - Stored SSRF
+        logger.critical("Stored SSRF attempt via Unsafe Device Discovery!!!")
+
+    # Store device (persistent SSRF vector)
+    add_device(device)
+
+    logger.info(f"New device added by {session['user']}: {device['name']} of type {device['type']} "
+                f"(IP: {device['ip']})")
+
+    # Unsafe discovery check (SSRF trigger)
+    try:
+        r = requests.get(f"http://{data.ip}", timeout=2)
+        logger.info(f"The new device on {data.ip} is reachable. The response is {r.text[:100]}")
+    except Exception as e:
+        logger.error(f"The new device on {data.ip} is unreachable. The error message is {e}")
+        pass
+
+    return {"status": "Device is added and will be monitored periodically"}

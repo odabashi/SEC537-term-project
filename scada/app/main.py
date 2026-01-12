@@ -30,7 +30,7 @@ def get_application(lifespan=None):
 
 app = get_application()
 app.include_router(auth.router, prefix="/auth")
-app.include_router(devices.router, prefix="/api/device")
+app.include_router(devices.router, prefix="/api/devices")
 app.include_router(diagnostics.router, prefix="/api/diagnostics")
 app.include_router(logs.router, prefix="/api/logs")
 app.include_router(monitoring.router, prefix="/api/monitoring")
