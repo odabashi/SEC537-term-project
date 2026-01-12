@@ -1,9 +1,9 @@
 from fastapi import Request, APIRouter
 from fastapi.responses import JSONResponse
 import logging
-from scada.app.models.schemas import LoginRequest
-from scada.app.services.session import create_session, generate_session_id, get_session
-from scada.app.services.monitoring import log_attack
+from models.schemas import LoginRequest
+from services.session import create_session, generate_session_id, get_session
+from services.monitoring import log_attack
 
 
 logger = logging.getLogger("SEC537_SCADA")

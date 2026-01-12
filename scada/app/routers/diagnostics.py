@@ -1,10 +1,10 @@
 from fastapi import Depends, APIRouter
 import os
 import logging
-from scada.app.models.schemas import DiagnosticRequest
-from scada.app.services.security import detect_command_injection
-from scada.app.services.session import require_session
-from scada.app.services.monitoring import log_attack  
+from models.schemas import DiagnosticRequest
+from services.security import detect_command_injection
+from services.session import require_session
+from services.monitoring import log_attack
 
 
 logger = logging.getLogger("SEC537_SCADA")

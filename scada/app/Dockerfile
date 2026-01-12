@@ -8,21 +8,21 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y \
     iputils-ping \
     traceroute \
-    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
-WORKDIR /app
+WORKDIR /
 
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source code
-COPY . ./app/
+COPY . .
 
 # Expose SCADA web interface port
 EXPOSE 8000
 
 # Start the SCADA application
 #CMD ["python", "app/main.py"]
-CMD ["uvicorn", "scada.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

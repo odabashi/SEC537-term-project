@@ -1,9 +1,9 @@
 from fastapi import Depends, APIRouter, HTTPException
 from fastapi.responses import FileResponse
 import logging
-from scada.app.services.session import require_session
-from scada.app.services.security import detect_path_traversal
-from scada.app.services.monitoring import log_attack
+from services.session import require_session
+from services.security import detect_path_traversal
+from services.monitoring import log_attack
 
 
 logger = logging.getLogger("SEC537_SCADA")

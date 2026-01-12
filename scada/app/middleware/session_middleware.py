@@ -1,8 +1,8 @@
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 import logging
-from scada.app.services.session import get_session, update_session
-from scada.app.services.monitoring import log_attack
+from services.session import get_session, update_session
+from services.monitoring import log_attack
 
 
 logger = logging.getLogger("SEC537_SCADA")

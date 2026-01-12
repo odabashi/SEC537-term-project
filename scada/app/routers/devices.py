@@ -2,12 +2,12 @@ from fastapi import APIRouter, Depends
 import logging
 import requests
 from datetime import datetime
-from scada.app.models.schemas import DeviceCheckRequest, DeviceAddRequest
-from scada.app.services.session import require_session
-from scada.app.services.security import detect_internal_target
-from scada.app.services.monitoring import log_attack
-from scada.app.services.devices import add_device, list_devices
-from scada.app.services.modbus_client import read_plc_data
+from models.schemas import DeviceCheckRequest, DeviceAddRequest
+from services.session import require_session
+from services.security import detect_internal_target
+from services.monitoring import log_attack
+from services.devices import add_device, list_devices
+from services.modbus_client import read_plc_data
 
 
 logger = logging.getLogger("SEC537_SCADA")

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from starlette.middleware.cors import CORSMiddleware
 from config import HOST, PORT, APP_NAME, CONCURRENCY_LIMIT
-from routers import auth, devices, diagnostics, logs, monitoring 
+from routers import auth, devices, diagnostics, logs, monitoring
 from middleware.session_middleware import SessionMonitorMiddleware
 
 
