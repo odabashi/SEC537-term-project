@@ -153,7 +153,7 @@ def read_device_data(plc_ip: str, plc_port: int = 502,
     if read_input_registers:
         function_codes.append("0x04")
 
-    data = read_plc_data(plc_ip, function_codes, plc_port)
+    data, time_of_read = read_plc_data(plc_ip, function_codes, plc_port)
 
     # MONITORING: Modbus read (Log Sensitive OT Access together with PLC IP/Port and Session Owner Info)
     log_attack(
@@ -174,10 +174,12 @@ def read_device_data(plc_ip: str, plc_port: int = 502,
                 'read_holding_registers': read_holding_registers,
                 'read_input_registers': read_input_registers
             },
+            'time_of_read': time_of_read,
             'vulnerability': 'No proper authorization check for device ownership or access control',
             'sensitive_data': data
         }
     )
     return {
         "data": data,
+        "time_of_read": time_of_read
     }

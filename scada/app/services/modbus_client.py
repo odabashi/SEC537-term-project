@@ -1,5 +1,6 @@
 from pymodbus.client import ModbusTcpClient
 import logging
+from datetime import datetime
 
 
 logger = logging.getLogger("SEC537_SCADA")
@@ -13,13 +14,16 @@ def read_plc_data(plc_ip: str, function_codes: list, port: int = 502, device_id=
     """
 
     client = ModbusTcpClient(plc_ip, port=port)
-    if not client.connect():
-        logger.error("Unable to Connect to PLC Modbus TCP!")
-        raise ConnectionError("Unable to Connect to PLC Modbus TCP!")
+    try:
+        client.connect()
+    except Exception as e:
+        logger.error(f"Unable to Connect to PLC Modbus TCP! The error message is {e}")
+        raise ConnectionError(f"Unable to Connect to PLC Modbus TCP! The error message is {e}")
 
     logger.info("Connection to PLC Modbus TCP established, Start reading registers data ...")
     data = {}
 
+    time_of_read = datetime.now().strftime("%Y-%m-%d %H:%M:%SZ")
     try:
         if "0x01" in function_codes:
             # 0x01 – Read Coils (Control flags)
@@ -49,4 +53,4 @@ def read_plc_data(plc_ip: str, function_codes: list, port: int = 502, device_id=
         client.close()
         logger.info("Connection to PLC Modbus TCP closed, Data read completed.")
 
-    return data
+    return data, time_of_read
