@@ -35,7 +35,7 @@ def export_logs(file_name: str, session: str = Depends(require_session)):
         )
         
         logger.warning(
-            f"PATH TRAVERSAL attempt by user={session["user"]}, file={file_name}"
+            f"PATH TRAVERSAL attempt by user={session['user']}, file={file_name}"
         )
     else:
         # Even legitimate file access should be logged for monitoring
