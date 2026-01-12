@@ -1,8 +1,9 @@
-from fastapi import Depends, APIRouter
+from fastapi import Depends, APIRouter, HTTPException
 import os
 import logging
+import subprocess
 from models.schemas import DiagnosticRequest
-from services.security import detect_command_injection
+from services.security import detect_command_injection, validate_target_ip
 from services.session import require_session
 from services.monitoring import log_attack
 
@@ -20,8 +21,8 @@ def ping(data: DiagnosticRequest, session: str = Depends(require_session)):
 
     VULNERABILITY: Command injection.
     """
+    # For MONITORING: Log Command Injection
     if detect_command_injection(data.host):
-        # MONITORING: Log Command Injection
         log_attack(
             attack_type='CMD_INJECTION',
             target_url='/api/diagnostics/ping',
@@ -40,9 +41,34 @@ def ping(data: DiagnosticRequest, session: str = Depends(require_session)):
         )
         logger.critical("Command Injection attempt!!!")
 
-    cmd = f"ping -c 1 {data.host}"
-    os.system(cmd)
-    return {"executed": cmd}
+    # PREVIOUS VULNERABILITY: Command injection
+    # PATCHED: Enforce IP-only input, Validate IP input, Reject Command Injection, Reject Argument Injection,
+    #          Reject Flag Abuse
+    #          Rejected Inputs: ('-t', '--help', 'google.com', '127.0.0.1; rm -rf /')
+    #          Only allowed inputs: ('127.0.0.1', '123.32.123.21')
+    try:
+        # PATCHED: Validate IP input
+        target_ip = validate_target_ip(data.host)
+
+        # PATCHED: Use subprocess.run() instead of os.system() to execute ping command
+        result = subprocess.run(
+            ["ping", "-c", "1", target_ip],
+            capture_output=True,    # Capture output to return it in the response
+            text=True,              # Return output as string instead of bytes
+            timeout=3,              # Set timeout to 3 seconds
+            check=False             # Do not raise exception on non-zero exit code
+        )
+
+        return {
+            "executed": f"ping -c 1 {target_ip}",
+            "target": target_ip,
+            "output": result.stdout
+        }
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail="Only literal IP addresses are allowed"
+        )
 
 
 @router.post("/traceroute")

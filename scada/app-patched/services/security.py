@@ -72,9 +72,14 @@ ALLOWED_SCADA_NETWORKS = [
 ]
 
 
-def is_allowed_scada_target(target: str) -> bool:
+def is_allowed_scada_target(target: str):
     try:
         ip = ipaddress.ip_address(target)
         return any(ip in net for net in ALLOWED_SCADA_NETWORKS)
     except ValueError:
         return False
+
+
+def validate_target_ip(value: str):
+    ip = ipaddress.ip_address(value)    # It may raise ValueError exception if value is not IP Address (e.g. hostname)
+    return str(ip)
