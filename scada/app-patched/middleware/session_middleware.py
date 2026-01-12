@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 from services.session import get_session, update_session
@@ -51,6 +51,8 @@ class SessionMonitorMiddleware(BaseHTTPMiddleware):
                         f"IP: {session['ip']} (Original) → {ip} (Current) | "
                         f"User-Agent: {session['user_agent']} (Original) → {user_agent} (Current) "
                     )
+                    raise HTTPException(status_code=403, detail="A session hijack attempt was detected. Please do "
+                                                                "not do that!")
                 update_session(session_id)
 
         response = await call_next(request)
