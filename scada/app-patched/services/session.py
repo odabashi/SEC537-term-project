@@ -36,6 +36,8 @@ def get_session(session_id: str):
     # PREVIOUS VULNERABILITY: No session expiration
     # PATCHED: Session Expiration added
     session = SESSIONS.get(session_id)
+    if not session:
+        return None
     if time.time() - session["created_at"] > SESSION_TTL:
         del SESSIONS[session_id]
         return None

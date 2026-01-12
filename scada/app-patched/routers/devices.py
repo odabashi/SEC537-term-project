@@ -4,9 +4,9 @@ import requests
 from datetime import datetime
 from models.schemas import DeviceCheckRequest, DeviceAddRequest
 from services.session import require_session
-from services.security import detect_internal_target, is_allowed_scada_target, get_device_by_ip
+from services.security import detect_internal_target, is_allowed_scada_target
 from services.monitoring import log_attack
-from services.devices import add_device, list_devices
+from services.devices import add_device, list_devices, get_device_by_ip
 from services.modbus_client import read_plc_data
 
 

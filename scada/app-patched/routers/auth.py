@@ -125,7 +125,7 @@ def login(data: LoginRequest, request: Request):
             log_attack(
                 attack_type='BRUTE_FORCE',
                 target_url='/auth/login',
-                payload=f'Attempt #{login_attempts_per_ip[ip]['count']} - Username: {data.username}',
+                payload=f'Attempt #{login_attempts_per_ip[ip]["count"]} - Username: {data.username}',
                 source_ip=ip,
                 user_agent=user_agent,
                 success=False,
