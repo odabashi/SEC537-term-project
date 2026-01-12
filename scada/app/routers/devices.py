@@ -155,8 +155,29 @@ def read_device_data(plc_ip: str, plc_port: int = 502,
 
     data = read_plc_data(plc_ip, function_codes, plc_port)
 
-    # TODO: MONITORING - Modbus read (Log Sensitive OT Access together with PLC IP/Port and Session Owner Info)
-
+    # MONITORING: Modbus read (Log Sensitive OT Access together with PLC IP/Port and Session Owner Info)
+    log_attack(
+        attack_type='MODBUS_UNAUTHORIZED',
+        target_url='/api/device/read_specific_device',
+        payload=f'Possible Unauthorized Modbus read from PLC {plc_ip}:{plc_port}',
+        source_ip=session['ip'],
+        user_agent=session['user_agent'],
+        success=True,
+        details={
+            'user': session['user'],
+            'plc_ip': plc_ip,
+            'plc_port': plc_port,
+            'function_codes': function_codes,
+            'read_operations': {
+                'read_coils': read_coils,
+                'read_discrete_inputs': read_discrete_inputs,
+                'read_holding_registers': read_holding_registers,
+                'read_input_registers': read_input_registers
+            },
+            'vulnerability': 'No proper authorization check for device ownership or access control',
+            'sensitive_data': data
+        }
+    )
     return {
         "data": data,
     }
