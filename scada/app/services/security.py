@@ -3,11 +3,12 @@ import re
 
 
 PATH_TRAVERSAL_PATTERNS = [
-    "..",
-    "/",
+    "../",
+    "..\\",
     ".bash",
     "passwd",
-    ".env"
+    ".env",
+    "%2e%2e"
 ]
 
 

@@ -64,4 +64,4 @@ def export_logs(file_name: str, session: str = Depends(require_session)):
         logger.exception(f"Error accessing log file {path}: {e}")
         raise HTTPException(status_code=500, detail="Unable to access log file")
 
-    return FileResponse(path)
+    return FileResponse(path, filename=file_name)
