@@ -4,7 +4,7 @@ import requests
 from datetime import datetime
 from models.schemas import DeviceCheckRequest, DeviceAddRequest
 from services.session import require_session
-from services.security import detect_internal_target, is_allowed_scada_target
+from services.security import detect_internal_target, is_allowed_scada_target, get_device_by_ip
 from services.monitoring import log_attack
 from services.devices import add_device, list_devices
 from services.modbus_client import read_plc_data
@@ -22,29 +22,6 @@ def check_device(data: DeviceCheckRequest,session: str = Depends(require_session
     Device health check.
     VULNERABILITY: Vulnerable to SSRF (no IP validation).
     """
-    ssrf_attempt = detect_internal_target(data.ip)
-
-    # Detection (monitoring only)
-    if ssrf_attempt:
-        # MONITORING: Log SSRF attack
-        log_attack(
-            attack_type='SSRF',
-            target_url='/api/device/check',
-            payload=f'Blind SSRF attempt to: {data.ip}',
-            source_ip=session['ip'],
-            user_agent=session['user_agent'],
-            success=True,
-            details={
-                'user': session['user'],
-                'target_ip': data.ip,
-                'attack_vector': 'Device health check',
-                'ssrf_type': 'Blind SSRF',
-                'vulnerability': 'No IP validation or whitelist',
-                'internal_target_detected': True
-            }
-        )
-        logger.critical("Blind SSRF attempt!!!")
-
     # PREVIOUS VULNERABILITY: BLIND SSRF
     # PATCHED: Enforcement (More Effective than only IPs and domains of internal networks)
     if not is_allowed_scada_target(data.ip):
@@ -68,6 +45,29 @@ def check_device(data: DeviceCheckRequest,session: str = Depends(require_session
             status_code=403,
             detail="Target not in approved SCADA network"
         )
+
+    ssrf_attempt = detect_internal_target(data.ip)
+
+    # Detection (monitoring only)
+    if ssrf_attempt:
+        # MONITORING: Log SSRF attack
+        log_attack(
+            attack_type='SSRF',
+            target_url='/api/device/check',
+            payload=f'Blind SSRF attempt to: {data.ip}',
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=True,
+            details={
+                'user': session['user'],
+                'target_ip': data.ip,
+                'attack_vector': 'Device health check',
+                'ssrf_type': 'Blind SSRF',
+                'vulnerability': 'No IP validation or whitelist',
+                'internal_target_detected': True
+            }
+        )
+        logger.critical("Blind SSRF attempt!!!")
 
     logger.info(f"Checking device health for {data.ip} based on the request of {session['user']}")
     try:
@@ -94,7 +94,35 @@ def add_new_device(data: DeviceAddRequest, session: str = Depends(require_sessio
         "added_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
     }
 
-    # Monitoring: detect stored SSRF attempt
+    # PREVIOUS VULNERABILITY: Stored (Persistent) SSRF
+    # PATCHED: Enforcement (More Effective than only IPs and domains of internal networks)
+    if not is_allowed_scada_target(data.ip):
+        log_attack(
+            attack_type='STORED_SSRF',
+            target_url='/api/device/add',
+            payload=data.ip,
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=False,
+            details={
+                'user': session['user'],
+                'device_name': data.name,
+                'reason': 'Device IP not in SCADA allowlist'
+            }
+        )
+
+        raise HTTPException(
+            status_code=403,
+            detail="Device IP is not approved. Device could not be added!"
+        )
+
+    # Store device
+    add_device(device)
+
+    logger.info(f"New device added by {session['user']}: {device['name']} of type {device['type']} "
+                f"(IP: {device['ip']}:{device['port']})")
+
+    # Monitoring
     if detect_internal_target(device["ip"]):
         # MONITORING: Log Stored SSRF
         log_attack(
@@ -130,38 +158,10 @@ def add_new_device(data: DeviceAddRequest, session: str = Depends(require_sessio
                 'user': session['user'],
                 'device_name': device['name'],
                 'device_ip': device['ip'],
-                'device_type': device['type'],
-                'vulnerability': 'No validation or approval workflow for new devices'
+                'device_type': device['type']
             }
         )
 
-    # PREVIOUS VULNERABILITY: Stored (Persistent) SSRF
-    # PATCHED: Enforcement (More Effective than only IPs and domains of internal networks)
-    if not is_allowed_scada_target(data.ip):
-        log_attack(
-            attack_type='STORED_SSRF',
-            target_url='/api/device/add',
-            payload=data.ip,
-            source_ip=session['ip'],
-            user_agent=session['user_agent'],
-            success=False,
-            details={
-                'user': session['user'],
-                'device_name': data.name,
-                'reason': 'Device IP not in SCADA allowlist'
-            }
-        )
-
-        raise HTTPException(
-            status_code=403,
-            detail="Device IP is not approved. Device could not be added!"
-        )
-
-    # Store device
-    add_device(device)
-
-    logger.info(f"New device added by {session['user']}: {device['name']} of type {device['type']} "
-                f"(IP: {device['ip']}:{device['port']})")
 
     try:
         r = requests.get(f"http://{data.ip}:{data.port}", timeout=2)
@@ -189,6 +189,65 @@ def read_device_data(plc_ip: str, plc_port: int = 502,
     Reads PLC data.
     VULNERABILITY: Risk of Unauthorized Modbus read (No Authorization check for device ownership)
     """
+    # PREVIOUS VULNERABLE: UNAUTHORIZED READ FROM PLC
+    # PATCHED: With Enforcement (On IP-Level and Device-Level)
+    # ---------- STEP 1: Ensure PLC is in approved SCADA network ----------
+    if not is_allowed_scada_target(plc_ip):
+        log_attack(
+            attack_type='MODBUS_UNAUTHORIZED',
+            target_url='/api/device/read_specific_device',
+            payload=f'PLC IP outside SCADA allowlist: {plc_ip}',
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=False,
+            details={
+                'user': session['user'],
+                'plc_ip': plc_ip,
+                'reason': 'PLC IP not in approved SCADA network'
+            }
+        )
+        raise HTTPException(status_code=403, detail="PLC not in approved SCADA network")
+
+    # ---------- STEP 2: Ensure PLC is a registered device ----------
+    device = get_device_by_ip(plc_ip)
+    if not device:
+        log_attack(
+            attack_type='MODBUS_UNAUTHORIZED',
+            target_url='/api/device/read_specific_device',
+            payload=f'Unregistered PLC access attempt: {plc_ip}',
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=False,
+            details={
+                'user': session['user'],
+                'plc_ip': plc_ip,
+                'reason': 'PLC not registered in device inventory'
+            }
+        )
+        raise HTTPException(status_code=404, detail="PLC not registered")
+
+    # ---------- STEP 3: Ownership / Authorization ----------
+    # For sake of simplicity, we only check if the user who added the device is the same as the one who is reading it.
+    # In a real-world scenario, we would need to check if the user has the necessary permissions to read the device by
+    # checking the user's role and permissions.
+    if device["added_by"] != session["user"]:
+        log_attack(
+            attack_type='MODBUS_UNAUTHORIZED',
+            target_url='/api/device/read_specific_device',
+            payload=f'Unauthorized PLC read attempt: {plc_ip}',
+            source_ip=session['ip'],
+            user_agent=session['user_agent'],
+            success=False,
+            details={
+                'user': session['user'],
+                'device_owner': device["added_by"],
+                'plc_ip': plc_ip,
+                'reason': 'User not authorized for this PLC'
+            }
+        )
+        raise HTTPException(status_code=403, detail="Not authorized to read this PLC")
+
+    # ---------- STEP 4: Build allowed Modbus function codes ----------
     function_codes = []
     if read_coils:
         function_codes.append("0x01")
@@ -199,9 +258,10 @@ def read_device_data(plc_ip: str, plc_port: int = 502,
     if read_input_registers:
         function_codes.append("0x04")
 
+    # ---------- STEP 5: Authorized PLC read ----------
     data, time_of_read = read_plc_data(plc_ip, function_codes, plc_port)
 
-    # MONITORING: Modbus read (Log Sensitive OT Access together with PLC IP/Port and Session Owner Info)
+    # MONITORING: Legitimate Modbus read (Log Sensitive OT Access together with PLC IP/Port and Session Owner Info)
     log_attack(
         attack_type='MODBUS_UNAUTHORIZED',
         target_url='/api/device/read_specific_device',
@@ -221,7 +281,6 @@ def read_device_data(plc_ip: str, plc_port: int = 502,
                 'read_input_registers': read_input_registers
             },
             'time_of_read': time_of_read,
-            'vulnerability': 'No proper authorization check for device ownership or access control',
             'sensitive_data': data
         }
     )

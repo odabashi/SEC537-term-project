@@ -143,25 +143,6 @@ def login(data: LoginRequest, request: Request):
         login_attempts_per_ip[ip]["count"] += 1
         login_attempts_per_ip[ip]["last_attempt"] = time.time()
 
-
-
-    if login_attempts[ip] > 1000:
-        # MONITORING: Log critical password leak
-        log_attack(
-            attack_type='PASSWORD_LEAK',
-            target_url='/auth/login',
-            payload=f'CRITICAL: Credentials leaked after {login_attempts[ip]} attempts',
-            source_ip=ip,
-            user_agent=user_agent,
-            success=True,
-            details={
-                'leaked_credentials': USERS,   # Assumed that users' credentials are leaked
-                'attempts': login_attempts[ip],
-                'vulnerability': 'System exhaustion leads to credential disclosure'
-            }
-        )
-        logger.critical(f"Password compromised via brute force from {ip}")
-
     # Check credentials
     if data.username in USERS and USERS[data.username] == data.password:
         # reset attempts on successful login

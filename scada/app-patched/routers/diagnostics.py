@@ -1,5 +1,4 @@
 from fastapi import Depends, APIRouter, HTTPException
-import os
 import logging
 import subprocess
 from models.schemas import DiagnosticRequest
@@ -21,26 +20,6 @@ def ping(data: DiagnosticRequest, session: str = Depends(require_session)):
 
     VULNERABILITY: Command injection.
     """
-    # For MONITORING: Log Command Injection
-    if detect_command_injection(data.host):
-        log_attack(
-            attack_type='CMD_INJECTION',
-            target_url='/api/diagnostics/ping',
-            payload=f'Command injection attempt: {data.host}',
-            source_ip=session['ip'],
-            user_agent=session['user_agent'],
-            success=True,
-            details={
-                'user': session['user'],
-                'injected_command': data.host,
-                'executed_command': f'ping -c 1 {data.host}',
-                'attack_vector': 'Ping diagnostic',
-                'vulnerability': 'User input passed directly to os.system() without sanitization',
-                'detected_patterns': 'Command injection characters detected (e.g., ;, |, &, $, `, etc.)'
-            }
-        )
-        logger.critical("Command Injection attempt!!!")
-
     # PREVIOUS VULNERABILITY: Command injection
     # PATCHED: Enforce IP-only input, Validate IP input, Reject Command Injection, Reject Argument Injection,
     #          Reject Flag Abuse
@@ -58,6 +37,26 @@ def ping(data: DiagnosticRequest, session: str = Depends(require_session)):
             timeout=3,              # Set timeout to 3 seconds
             check=False             # Do not raise exception on non-zero exit code
         )
+
+        # For MONITORING: Log Command Injection
+        if detect_command_injection(data.host):
+            log_attack(
+                attack_type='CMD_INJECTION',
+                target_url='/api/diagnostics/ping',
+                payload=f'Command injection attempt: {data.host}',
+                source_ip=session['ip'],
+                user_agent=session['user_agent'],
+                success=True,
+                details={
+                    'user': session['user'],
+                    'injected_command': data.host,
+                    'executed_command': f'ping -c 1 {data.host}',
+                    'attack_vector': 'Ping diagnostic',
+                    'vulnerability': 'User input passed directly to os.system() without sanitization',
+                    'detected_patterns': 'Command injection characters detected (e.g., ;, |, &, $, `, etc.)'
+                }
+            )
+            logger.critical("Command Injection attempt!!!")
 
         return {
             "executed": f"ping -c 1 {target_ip}",
@@ -79,26 +78,6 @@ def traceroute(data: DiagnosticRequest, session: str = Depends(require_session))
 
     VULNERABILITY: Command injection.
     """
-    if detect_command_injection(data.host):
-        # MONITORING: Log Command Injection
-        log_attack(
-            attack_type='CMD_INJECTION',
-            target_url='/api/diagnostics/traceroute',
-            payload=f'Command injection attempt: {data.host}',
-            source_ip=session['ip'],
-            user_agent=session['user_agent'],
-            success=True,
-            details={
-                'user': session['user'],
-                'injected_command': data.host,
-                'executed_command': f'traceroute {data.host}',
-                'attack_vector': 'Traceroute diagnostic',
-                'vulnerability': 'User input passed directly to os.system() without sanitization',
-                'detected_patterns': 'Command injection characters detected (e.g., ;, |, &, $, `, etc.)'
-            }
-        )
-        logger.critical("Command Injection attempt!!!")
-
     # PREVIOUS VULNERABILITY: Command injection
     # PATCHED: Enforce IP-only input, Validate IP input, Reject Command Injection, Reject Argument Injection,
     #          Reject Flag Abuse
@@ -116,6 +95,26 @@ def traceroute(data: DiagnosticRequest, session: str = Depends(require_session))
             timeout=3,              # Set timeout to 3 seconds
             check=False             # Do not raise exception on non-zero exit code
         )
+
+        if detect_command_injection(data.host):
+            # MONITORING: Log Command Injection
+            log_attack(
+                attack_type='CMD_INJECTION',
+                target_url='/api/diagnostics/traceroute',
+                payload=f'Command injection attempt: {data.host}',
+                source_ip=session['ip'],
+                user_agent=session['user_agent'],
+                success=True,
+                details={
+                    'user': session['user'],
+                    'injected_command': data.host,
+                    'executed_command': f'traceroute {data.host}',
+                    'attack_vector': 'Traceroute diagnostic',
+                    'vulnerability': 'User input passed directly to os.system() without sanitization',
+                    'detected_patterns': 'Command injection characters detected (e.g., ;, |, &, $, `, etc.)'
+                }
+            )
+            logger.critical("Command Injection attempt!!!")
 
         return {
             "executed": f"ping -c 1 {target_ip}",

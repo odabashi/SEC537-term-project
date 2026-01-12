@@ -30,41 +30,6 @@ def export_logs(file_name: str, session: str = Depends(require_session)):
     # There will be no need to detect_path_traversal but still used for monitoring purposes
     requested_path = (BASE_LOG_DIR / file_name).resolve()
 
-    if detect_path_traversal(file_name):
-        log_attack(
-            attack_type='PATH_TRAVERSAL',
-            target_url='/api/logs/export',
-            payload=f'Attempted file access: {file_name}',
-            source_ip=session["ip"],
-            user_agent=session["user_agent"],
-            success=True,  # Attacker gets response (vulnerability exists)
-            details={
-                'user': session["user"],
-                'requested_file': file_name,
-                'detected_patterns': [p for p in PATH_TRAVERSAL_PATTERNS if p in file_name],
-                'vulnerability': 'No input sanitization or path validation',
-                'attempted_path': f'/var/log/scada/{file_name}'
-            }
-        )
-        logger.warning(
-            f"PATH TRAVERSAL attempt by user={session['user']}, file={file_name}"
-        )
-    else:
-        # Even legitimate file access should be logged for monitoring
-        log_attack(
-            attack_type='PATH_INJECTION',  # Less severe, but still logged
-            target_url='/api/logs/export',
-            payload=f'File access: {file_name}',
-            source_ip=session["ip"],
-            user_agent=session["user_agent"],
-            success=True,
-            details={
-                'user': session["user"],
-                'requested_file': file_name,
-                'vulnerability': 'File access without proper access control'
-            }
-        )
-
     if not str(requested_path).startswith(str(BASE_LOG_DIR)):
         log_attack(
             attack_type='PATH_INJECTION',
@@ -111,6 +76,42 @@ def export_logs(file_name: str, session: str = Depends(require_session)):
         raise HTTPException(
             status_code=400,
             detail="Invalid file type"
+        )
+
+    # For MONITORING: Log Path Traversal
+    if detect_path_traversal(file_name):
+        log_attack(
+            attack_type='PATH_TRAVERSAL',
+            target_url='/api/logs/export',
+            payload=f'Attempted file access: {file_name}',
+            source_ip=session["ip"],
+            user_agent=session["user_agent"],
+            success=True,  # Attacker gets response (vulnerability exists)
+            details={
+                'user': session["user"],
+                'requested_file': file_name,
+                'detected_patterns': [p for p in PATH_TRAVERSAL_PATTERNS if p in file_name],
+                'vulnerability': 'No input sanitization or path validation',
+                'attempted_path': f'/var/log/scada/{file_name}'
+            }
+        )
+        logger.warning(
+            f"PATH TRAVERSAL attempt by user={session['user']}, file={file_name}"
+        )
+    else:
+        # Even legitimate file access should be logged for monitoring
+        log_attack(
+            attack_type='PATH_INJECTION',  # Less severe, but still logged
+            target_url='/api/logs/export',
+            payload=f'File access: {file_name}',
+            source_ip=session["ip"],
+            user_agent=session["user_agent"],
+            success=True,
+            details={
+                'user': session["user"],
+                'requested_file': file_name,
+                'vulnerability': 'File access without proper access control'
+            }
         )
 
     # Check if such file exists
