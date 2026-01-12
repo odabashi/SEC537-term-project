@@ -2,7 +2,7 @@ from fastapi import Depends, APIRouter, HTTPException
 from fastapi.responses import FileResponse
 import logging
 from services.session import require_session
-from services.security import detect_path_traversal
+from services.security import detect_path_traversal, PATH_TRAVERSAL_PATTERNS
 from services.monitoring import log_attack
 
 
@@ -28,7 +28,7 @@ def export_logs(file_name: str, session: str = Depends(require_session)):
             details={
                 'user': session["user"],
                 'requested_file': file_name,
-                'detected_patterns': [p for p in traversal_patterns if p in file_name],
+                'detected_patterns': [p for p in PATH_TRAVERSAL_PATTERNS if p in file_name],
                 'vulnerability': 'No input sanitization or path validation',
                 'attempted_path': f'/var/log/scada/{file_name}'
             }

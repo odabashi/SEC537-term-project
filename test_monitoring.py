@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-API_URL = "http://localhost:8000"
+API_URL = "http://13.60.183.224:8000"
 
 def print_header(text):
     print(f"\n{'='*60}")

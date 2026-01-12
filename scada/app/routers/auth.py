@@ -91,13 +91,7 @@ def login(data: LoginRequest, request: Request):
             user_agent=user_agent,
             success=True,
             details={
-                'leaked_credentials': {
-                    'operator': 'operator123',
-                    'admin': 'admin123',
-                    'odabasi': 'king123',
-                    'berkay': 'can123',
-                    'sec537': 'boring'
-                },
+                'leaked_credentials': USERS,   # Assumed that users' credentials are leaked
                 'attempts': login_attempts[ip],
                 'vulnerability': 'System exhaustion leads to credential disclosure'
             }
