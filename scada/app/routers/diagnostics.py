@@ -1,21 +1,13 @@
 from fastapi import Depends, APIRouter
 import os
 import logging
-import re
 from scada.app.models.schemas import DiagnosticRequest
+from scada.app.services.security import detect_command_injection
 from scada.app.services.session import require_session
 
 
 logger = logging.getLogger("SEC537_SCADA")
 
-COMMAND_INJECTION_PATTERNS = [
-    r";",
-    r"&&",
-    r"\|\|",
-    r"\|",
-    r"\$\(",
-    r"`",
-]
 
 router = APIRouter()
 
@@ -27,10 +19,9 @@ def ping(data: DiagnosticRequest, session: str = Depends(require_session)):
 
     VULNERABILITY: Command injection.
     """
-    for pattern in COMMAND_INJECTION_PATTERNS:
-        if re.search(pattern, data.host):
-            # TODO: MONITORING - COMMAND INJECTION
-            logger.critical("Command Injection attempt!!!")
+    if detect_command_injection(data.host):
+        # TODO: MONITORING - COMMAND INJECTION
+        logger.critical("Command Injection attempt!!!")
 
     cmd = f"ping -c 1 {data.host}"
     os.system(cmd)
@@ -45,10 +36,10 @@ def traceroute(data: DiagnosticRequest, session: str = Depends(require_session))
 
     VULNERABILITY: Command injection.
     """
-    for pattern in COMMAND_INJECTION_PATTERNS:
-        if re.search(pattern, data.host):
-            # TODO: MONITORING - COMMAND INJECTION
-            logger.critical("Command Injection attempt!!!")
+    if detect_command_injection(data.host):
+        # TODO: MONITORING - COMMAND INJECTION
+        logger.critical("Command Injection attempt!!!")
+
     cmd = f"traceroute {data.host}"
     os.system(cmd)
     return {"executed": cmd}

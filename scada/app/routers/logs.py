@@ -2,6 +2,7 @@ from fastapi import Depends, APIRouter, HTTPException
 from fastapi.responses import FileResponse
 import logging
 from scada.app.services.session import require_session
+from scada.app.services.security import detect_path_traversal
 from scada.app.services.monitoring import log_attack
 
 logger = logging.getLogger("SEC537_SCADA")
@@ -15,10 +16,7 @@ def export_logs(file_name: str, session: str = Depends(require_session)):
     """
     VULNERABILITY: Path traversal. No sanitization, whitelist, path validation, extension restriction (e.g., "../../")
     """
-    # Check for path traversal patterns
-    traversal_patterns = ["..", "/", ".bash", "passwd", ".env"]
-    if any(p in file_name for p in traversal_patterns):
-        # MONITORING: Log path traversal attempt
+    if detect_path_traversal(file_name):
         log_attack(
             attack_type='PATH_TRAVERSAL',
             target_url='/api/logs/export',

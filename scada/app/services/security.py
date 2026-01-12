@@ -1,4 +1,38 @@
 import ipaddress
+import re
+
+
+PATH_TRAVERSAL_PATTERNS = [
+    "..",
+    "/",
+    ".bash",
+    "passwd",
+    ".env"
+]
+
+
+def detect_path_traversal(file_name):
+    for pattern in PATH_TRAVERSAL_PATTERNS:
+        if pattern in file_name:
+            return True
+    return False
+
+
+COMMAND_INJECTION_PATTERNS = [
+    r";",
+    r"&&",
+    r"\|\|",
+    r"\|",
+    r"\$\(",
+    r"`",
+]
+
+
+def detect_command_injection(command):
+    for pattern in COMMAND_INJECTION_PATTERNS:
+        if re.search(pattern, command):
+            return True
+    return False
 
 
 INTERNAL_NETWORKS = [
