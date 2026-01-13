@@ -33,13 +33,14 @@ BLOCK_TIME = 300
 def is_account_blocked(username: str):
     entry = login_attempts_per_username.get(username)
     if not entry:
+        login_attempts_per_username[username] = {"count": 0, "last_attempt": None}
         return False
 
-    if entry.get("last_attempt") and time.time() - entry["last_attempt"] < BLOCK_TIME:
+    if entry.get("last_attempt") and entry.get("count") >= MAX_ATTEMPTS and time.time() - entry["last_attempt"] < BLOCK_TIME:
         return True
 
     # Auto-unblock after time passes
-    if entry.get("last_attempt") and time.time() - entry["last_attempt"] >= BLOCK_TIME:
+    if entry.get("last_attempt") and entry.get("count") >= MAX_ATTEMPTS and time.time() - entry["last_attempt"] >= BLOCK_TIME:
         login_attempts_per_username[username] = {"count": 0, "last_attempt": None}
 
     return False
@@ -92,11 +93,12 @@ def login(data: LoginRequest, request: Request):
             detail="Account temporarily locked due to multiple failed login attempts"
         )
     else:
-        login_attempts_per_username[data.username] = {"count": 1, "last_attempt": time.time()}
+        login_attempts_per_username[data.username]["count"] += 1
+        login_attempts_per_username[ip]["last_attempt"] = time.time()
 
     # PREVIOUS VULNERABILITY: Weak CAPTCHA (2+3 = 5): It is static, reusable, client-known and does NOT block automation
     # PATCHING: Strong Random CAPTCHA
-    if data.captcha_answer != CAPTCHA_STORE.get(data.username):
+    if data.captcha_answer != CAPTCHA_STORE.get(data.username).get("total"):
         logger.warning("Invalid CAPTCHA attempt")
         
         # MONITORING: Log weak CAPTCHA attempt
