@@ -94,7 +94,7 @@ def login(data: LoginRequest, request: Request):
         )
     else:
         login_attempts_per_username[data.username]["count"] += 1
-        login_attempts_per_username[ip]["last_attempt"] = time.time()
+        login_attempts_per_username[data.username]["last_attempt"] = time.time()
 
     # PREVIOUS VULNERABILITY: Weak CAPTCHA (2+3 = 5): It is static, reusable, client-known and does NOT block automation
     # PATCHING: Strong Random CAPTCHA
