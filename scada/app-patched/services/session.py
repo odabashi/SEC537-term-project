@@ -39,6 +39,7 @@ def get_session(session_id: str):
     if not session:
         return None
     if time.time() - session["created_at"] > SESSION_TTL:
+        logger.warning("Session is expired and will be deleted!")
         del SESSIONS[session_id]
         return None
     return session
